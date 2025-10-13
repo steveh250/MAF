@@ -1,20 +1,25 @@
+# Author: Steve Harris
+# Purpose: Basic MAF agent using Ollama modles and docling via MCP
+# NOTES:
+#  - Refer to examples here: https://github.com/microsoft/agent-framework/tree/main/python/samples/getting_started/agents/openai
+
 import asyncio
-import base64
 from agent_framework import ChatAgent, MCPStreamableHTTPTool, HostedMCPTool
-from agent_framework.openai import OpenAIChatClient, OpenAIAssistantsClient
+from agent_framework.openai import OpenAIChatClient, OpenAIAssistantsClient, OpenAIResponsesClient
 
 async def run_agent():
     # Initialize the OpenAI chat client (using Ollama endpoint)
     chat_client = OpenAIChatClient(
-        model_id="mistral-small",
+        model_id="llama3.1:8b",
         api_key="ollama",
-        base_url="http://127.0.0.1:11434/v1",
+        base_url="http://localhost:11434/v1",
     )
 
     # Create the MCP tool for Docling PDF parsing
     docling_tool = HostedMCPTool(
-        name="docling_parser",
+        name="Tool to convert files using docling via MCP",
         url="http://localhost:8000/mcp",
+        approval_mode="never_require",
     )
 
     # Specify the path to the pdf file
@@ -24,7 +29,7 @@ async def run_agent():
     # Create the agent with the chat client
     agent = chat_client.create_agent(
         name="PDF Parsing Agent",
-        instructions="You are a helpful assistant that specializes in parsing PDFs. You have access to a docling_parser tool that can convert PDFs to markdown. Use this tool when asked to parse or analyze PDF files.",
+        instructions="You are a helpful assistant that specializes in parsing PDFs. You have access to a docling_parser tool that can convert PDFs to markdown. You must use the docling_tool to convert the files when prompted by the user.",
         tools=[docling_tool]
     )
 
