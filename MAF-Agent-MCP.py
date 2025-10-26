@@ -16,50 +16,31 @@ async def run_agent():
     )
 
     # Create the MCP tool for Docling PDF parsing
-    docling_tool = HostedMCPTool(
-        name="Tool to convert files using docling via MCP",
-        url="http://localhost:8000/mcp",
-        approval_mode="never_require",
+    docling_tool= MCPStreamableHTTPTool(
+        name="docling_tool",
+        description="Convert a PDF to Markdown using docling MCP server",
+        url="http://localhost:8000/mcp",  # MCP server URL
     )
 
-    # Specify the path to the pdf file
-    pdf_path = "/tmp/MCPTest.pdf"
-    print(f"File Name: {pdf_path}\n\n")
+    # Specify the paths to the md and pdf file
+    pdf_file = "MAF-Research.pdf"
+    print(f"File Name: {pdf_file}\n\n")
+    md_file = "MAF-Research.md"
+    print(f"File Name: {md_file}\n\n")
 
     # Create the agent with the chat client
     agent = chat_client.create_agent(
         name="PDF Parsing Agent",
-        instructions="You are a helpful assistant that specializes in parsing PDFs. You have access to a docling_parser tool that can convert PDFs to markdown. You must use the docling_tool to convert the files when prompted by the user.",
+        instructions="You are a helpful assistant that specializes in parsing PDFs. You have access to tools that can convert PDFs to markdown and save as a new filename.",
         tools=[docling_tool]
     )
 
     # Run the agent with the MCP tool
     result = await agent.run(
-        f"Using your tools convert the PDF document at {pdf_path} to MarkDown and summarise the document",
-        tools=[docling_tool]
+        f"Using your tools convert the PDF document at {pdf_file} to MarkDown and save the markdown output to {md_file}.  If the file has been uploaded before, upload it to the docling server again in a new session.",
     )
 
     print(f"Agent: {result}\n\n")
-
-
-    # Start iterative conversation
-    print("PDF Parsing Agent - Interactive Mode")
-    print("Type 'exit' or 'quit' to end the conversation\n")
-
-    # Interactive conversation loop
-    while True:
-        user_input = input("You: ").strip()
-
-        if user_input.lower() in ['exit', 'quit', 'bye']:
-            print("Agent: Goodbye!")
-            break
-
-        if not user_input:
-            continue
-
-        # Continue the conversation with context
-        result = await agent.run(user_input, tools=[docling_tool])
-        print(f"Agent: {result}\n")
 
 if __name__ == "__main__":
     asyncio.run(run_agent())
