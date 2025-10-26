@@ -23,21 +23,21 @@ async def run_agent():
     )
 
     # Specify the paths to the md and pdf file
-    pdf_file = "MAF-Research.pdf"
+    pdf_file = "/home/ubuntu/MAF/MAF-Research.pdf"
     print(f"File Name: {pdf_file}\n\n")
-    md_file = "MAF-Research.md"
+    md_file = "/tmp/MAF-Research.md"
     print(f"File Name: {md_file}\n\n")
 
     # Create the agent with the chat client
     agent = chat_client.create_agent(
         name="PDF Parsing Agent",
-        instructions="You are a helpful assistant that specializes in parsing PDFs. You have access to tools that can convert PDFs to markdown and save as a new filename.",
+        instructions="You are a helpful assistant that specializes in converting PDFs.",
         tools=[docling_tool]
     )
 
     # Run the agent with the MCP tool
     result = await agent.run(
-        f"Using your tools convert the PDF document at {pdf_file} to MarkDown and save the markdown output to {md_file}.  If the file has been uploaded before, upload it to the docling server again in a new session.",
+        f"Using your tools convert the PDF document at {pdf_file} to MarkDown and save the markdown output to {md_file}.",
     )
 
     print(f"Agent: {result}\n\n")
