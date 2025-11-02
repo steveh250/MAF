@@ -38,7 +38,7 @@ Noticed this in the Ollama logs: 'Nov 02 22:57:57 ollama[1011]: time=2025-11-02T
   	Parameters
     	num_ctx           40960
 ```
-**NOTE: num_ctx is not present in the base model for some reason**
+**NOTE: num_ctx is not present in the base model for some reason.**
 
 
 
