@@ -22,7 +22,7 @@ Noticed this in the Ollama logs: 'Nov 02 22:57:57 ollama[1011]: time=2025-11-02T
 ```
 
 ```
-	(venv) ubuntu@ip-172-31-21-194:~/MAF$ ollama show qwen3:8b-40k
+	(venv) ubuntu@:~/MAF$ ollama show qwen3:8b-40k
   	Model
     	architecture        qwen3
     	parameters          8.2B
