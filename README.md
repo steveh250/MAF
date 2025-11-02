@@ -1,6 +1,6 @@
-#DUMPING GROUND FOR EXPERIMENT NOTES
+# DUMPING GROUND FOR EXPERIMENT NOTES
 
-##Ollama truncating prompts
+## Ollama truncating prompts
 Noticed this in the Ollama logs: 'Nov 02 22:57:57 ollama[1011]: time=2025-11-02T22:57:57.174Z level=WARN source=runner.go:159 msg="truncating input prompt" limit=4096 prompt=7268 keep=4 new=4096'
  - Didn't seem able to use things like extra_body in the Python code for the Ollama setup to be able to modify the context window size.
  - Found this article: https://github.com/ollama/ollama/issues/8099
