@@ -22,12 +22,10 @@ async def run_agent():
         url="http://localhost:8000/mcp",  # MCP server URL
     )
 
-    # Specify the paths to the md and pdf file
+    # Specify the paths to the pdf file
     pdf_file = "/home/ubuntu/MAF/MAF-Research.pdf"
     print(f"File Name: {pdf_file}\n\n")
-    md_file = "/tmp/MAF-Research.md"
-    print(f"File Name: {md_file}\n\n")
-
+    
     # Create the agent with the chat client
     agent = chat_client.create_agent(
         name="PDF Parsing Agent",
