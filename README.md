@@ -21,3 +21,26 @@ Noticed this in the Ollama logs: 'Nov 02 22:57:57 ollama[1011]: time=2025-11-02T
 		gemma3-doc:latest    f3ad5bc8c220    291 MB    2 months ago
 ```
 
+```
+	(venv) ubuntu@ip-172-31-21-194:~/MAF$ ollama show qwen3:8b-40k
+  	Model
+    	architecture        qwen3
+    	parameters          8.2B
+    	context length      40960
+    	embedding length    4096
+    	quantization        Q4_K_M
+
+  	Capabilities
+    	completion
+    	tools
+    	thinking
+
+  	Parameters
+    	num_ctx           40960
+```
+**NOTE: num_ctx is not present in the base model for some reason**
+
+
+
+
+
