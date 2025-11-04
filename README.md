@@ -5,6 +5,7 @@
  - Add RAG (FAISS/Chroma) for input data to ground questions.
  - Try larger qwen models (qwen3:14b is also 4bit quantized,Q4_K_M, it should be able to be run in about 8GB with about 22GB needed for any decent context window size, qwen3:30b may be a bit too large with any large enough context window).
  - Conversational, multi-turn.
+ - Automate: Monitor folder for PDF's, process the PDF and generate response, create an md or Word doc of the output, send document via email.
 
 ## Ollama truncating prompts
 Noticed this in the Ollama logs: 'Nov 02 22:57:57 ollama[1011]: time=2025-11-02T22:57:57.174Z level=WARN source=runner.go:159 msg="truncating input prompt" limit=4096 prompt=7268 keep=4 new=4096'
