@@ -1,8 +1,9 @@
 # DUMPING GROUND FOR EXPERIMENT NOTES
 
 ## Next Steps
+ - Get rid of the async error messages.
  - Add RAG (FAISS/Chroma) for input data to ground questions.
- - Try larger qwen models (qwen3:14b is also 4bit quantized,Q4_K_M, it should be able to be run in about 8GB with about 22GB needed for any decent context window size, qwen3:30b may be a bit too large with any large enough context window.)
+ - Try larger qwen models (qwen3:14b is also 4bit quantized,Q4_K_M, it should be able to be run in about 8GB with about 22GB needed for any decent context window size, qwen3:30b may be a bit too large with any large enough context window).
  - Conversational, multi-turn.
 
 ## Ollama truncating prompts
