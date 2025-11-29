@@ -2,7 +2,7 @@
 
 ## Next Steps
  - Get rid of the async error messages.
- - Add RAG (FAISS/Chroma) for input data to ground questions.
+ - Add RAG (FAISS/Chroma) for input data to ground questions. (See MAF-Agent-MCP-RAG.py)
  - Try larger qwen models (qwen3:14b is also 4bit quantized,Q4_K_M, it should be able to be run in about 8GB with about 22GB needed for any decent context window size, qwen3:30b may be a bit too large with any large enough context window).
  - Conversational, multi-turn.
  - Automate: Monitor folder for PDF's, process the PDF and generate response, create an md or Word doc of the output, send document via email (or drop into a folder for retrieval).
