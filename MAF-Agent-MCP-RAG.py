@@ -107,7 +107,7 @@ async def run_agent():
 
     # 4. Define File Paths
     # The static company information (Capabilities, History, etc.)
-    company_info_file = "/home/ubuntu/MAF/MyCompany-Capabilities.pdf"
+    company_info_file = "/home/ubuntu/MAF/MyCompany-Capabilities-Test.pdf"
     # The specific RFP we are answering today
     rfp_file = "/home/ubuntu/MAF/Sample-RFP-Managed-Services.pdf"
 
