@@ -30,7 +30,7 @@ This is for the procurement teams that receive the RFP's and generate an initial
 ## RFP Response Assessor
 
 ### Phase 1 - MVP
- - [] Create basic assessor using the Response generator as a template - change the prompts.
+ - [ ] Create basic assessor using the Response generator as a template - change the prompts.
 
 # Obervations
 
