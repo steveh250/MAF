@@ -16,7 +16,7 @@ This is for the procurement teams that receive the RFP's and generate an initial
 ## RFP Response Generator
 
 ## Phase 1 - MVP
- - [] Get rid of the async error messages.
+ - [ ] Get rid of the async error messages.
  - [X] Add RAG (FAISS/Chroma) for input data to ground questions. (See MAF-Agent-MCP-RAG.py)
 
 ### Phase 2 - Enhancements
