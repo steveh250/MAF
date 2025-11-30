@@ -12,6 +12,10 @@ from agent_framework import ChatAgent, MCPStreamableHTTPTool
 from agent_framework.openai import OpenAIChatClient
 from docx import Document
 from datetime import datetime
+import logging
+
+# Suppress noisy MCP async generator cleanup warnings
+logging.getLogger('asyncio').setLevel(logging.CRITICAL)
 
 # --- RAG Manager Class Implementation ---
 
@@ -86,14 +90,22 @@ class RAGManager:
 
         return context if context else "No relevant information found in the knowledge base."
 
-def save_to_word(content: str, output_filename: str = "rfp_response.docx"):
+def save_to_word(result, output_filename: str = "rfp_response.docx"):
     """Saves the agent's output to a Word document."""
+    # Extract text content from AgentRunResponse object
+    if hasattr(result, 'text'):
+        content = result.text
+    elif hasattr(result, 'content'):
+        content = result.content
+    else:
+        content = str(result)
+
     doc = Document()
     doc.add_heading('RFP Response Document', 0)
     timestamp = doc.add_paragraph()
     timestamp.add_run(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}").italic = True
     doc.add_paragraph()
-    
+
     for paragraph in content.split('\n\n'):
         if paragraph.strip():
             if paragraph.strip().startswith('#'):
@@ -102,7 +114,7 @@ def save_to_word(content: str, output_filename: str = "rfp_response.docx"):
                 doc.add_heading(heading_text, level=min(level, 3))
             else:
                 doc.add_paragraph(paragraph.strip())
-    
+
     doc.save(output_filename)
     print(f"\n✓ Response saved to: {output_filename}")
     return output_filename
@@ -142,36 +154,39 @@ async def run_agent(company_info_file: str, rfp_file: str, output_file: str = "r
         tools=[docling_tool, rag_manager.add_document, rag_manager.query_knowledge]
     )
 
-    # 6. Run the Agent with a Phased Prompt
+    # 5. Run the Agent with a Phased Prompt
     # We explicitly tell the agent to load the Company Info FIRST, then the RFP.
-    result = await agent.run(
-        f"""
-        Step 1: Load the Company Information.
-        Convert the file at '{company_info_file}' to markdown and add it to the knowledge base with source="Company Info".
+    try:
+        result = await agent.run(
+            f"""
+            Step 1: Perform INGESTION
+            Convert the file at '{company_info_file}' to markdown and add it to the knowledge base with source="Company Info".
+            Convert the file at '{rfp_file}' to markdown and add it to the knowledge base with source="RFP".
 
-        Step 2: Load the RFP.
-        Convert the file at '{rfp_file}' to markdown and add it to the knowledge base with source="RFP".
+            Step 2: Generate Responses.
+            Work through each RFP requirement or question and:
+            - Search the knowledge base for our company's matching capability.
+            - Draft a response citing our specific experience.
+            - Add additional explanation of our specific expertise up to a maximum of 300 characters per question.
+            """
+        )
 
-        Step 3: Generate Responses.
-        Scan the RFP data for the top 3 requirements or question that we need to respond to. iThen, for each requirement or question:
-        - Search the knowledge base for our company's matching capability.
-        - Draft a response citing our specific experience.
-        """
-    )
+        print(f"Agent: {result}\n\n")
 
-    print(f"Agent: {result}\n\n")
-    
-    # 6. Save output to Word document
-    save_to_word(result, output_file)
-    
-    return result
+        return result
+    finally:
+        # Ensure proper cleanup of agent resources
+        if hasattr(agent, 'cleanup'):
+            await agent.cleanup()
+        # Give async generators time to clean up
+        await asyncio.sleep(0.1)
 
 if __name__ == "__main__":
     # Default file paths
     default_company_info = "/home/ubuntu/MAF/MyCompany-Capabilities-Test.pdf"
     default_rfp = "/home/ubuntu/MAF/Sample-RFP-Managed-Services.pdf"
     default_output = "rfp_response.docx"
-    
+
     # Parse command line arguments
     if len(sys.argv) >= 3:
         company_info_file = sys.argv[1]
@@ -186,5 +201,10 @@ if __name__ == "__main__":
         company_info_file = default_company_info
         rfp_file = default_rfp
         output_file = default_output
-    
-    asyncio.run(run_agent(company_info_file, rfp_file, output_file))
+
+    # Run agent and save result
+    result = asyncio.run(run_agent(company_info_file, rfp_file, output_file))
+
+    # Save to Word after async execution completes
+    save_to_word(result, output_file)
+
