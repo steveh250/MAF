@@ -17,7 +17,7 @@ This is for the procurement teams that receive the RFP's and generate an initial
 
 ## Phase 1 - PoC MVP
  - [X] Get rid of the async error messages.
- - [X] Add RAG (FAISS/Chroma) for input data to ground questions. (See MAF-Agent-MCP-RAG.py)
+ - [X] Add RAG (Chroma) for input data to ground questions.
  - [X] Add Word document creation to store output.
  - [X] Pass files in as parameters (with defaults).
 
