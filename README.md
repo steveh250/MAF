@@ -15,7 +15,7 @@ This is for the procurement teams that receive the RFP's and generate an initial
 
 ## RFP Response Generator
 
-## Phase 1 - MVP
+## Phase 1 - PoC MVP
  - [X] Get rid of the async error messages.
  - [X] Add RAG (FAISS/Chroma) for input data to ground questions. (See MAF-Agent-MCP-RAG.py)
  - [X] Add Word document creation to store output.
@@ -23,18 +23,18 @@ This is for the procurement teams that receive the RFP's and generate an initial
 
 ### Phase 2 - Enhancements
  - Try larger Qwen models (qwen3:14b is also 4bit quantized,Q4_K_M, it should be able to be run in about 8GB with about 22GB needed for any decent context window size, qwen3:30b may be a bit too large with any large enough context window, although I suspect we will get a better quality RFP respnse from this larger model).
- - Add conversational, multi-turn (this doesn't quite fit the factory model but would be fun - would be more suited to an interactive solution).
- - Automate: Develop cron shell script to monitor folder for PDF's, process the PDF and generate response.
+ - Add conversational, multi-turn (this doesn't fit the factory model but would be fun - would be more suited to an interactive solution).
+ - Automate: Develop cron shell script to monitor folder for PDF's, process the PDF and generate response (whether that is drafting a response or assessing a rubric).
  - Add email support to send out the responses by email.
  - I suspect the basic rag is insufficient to make this production ready - maybe even use A2A and MAO to have a seperate agent answer the questions (may be getting to tool overload).
  - QA
  	- Add a QA portion to the prompt - persona based.
-  	- Add ability to pull in files that describe the customer and store them in ChromaDB.
+  	- Add ability to pull in files that describe the customer and store them in ChromaDB to support the persona.
 
 ## RFP Response Assessor
 
-### Phase 1 - MVP
- - [ ] Create basic assessor using the Response generator as a template - change the prompts.
+### Phase 1 - PoC MVP
+ - [X] Create basic assessor using the Response generator as a template - change the prompts.
 
 # Observations
 
