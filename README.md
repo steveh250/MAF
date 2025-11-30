@@ -1,4 +1,4 @@
-# FRP Factory
+# RFP Factory
 
 ## Background
 This started off as a dumping ground for experiments using the new Micrososft Agent Framework to see if MAF would work offline.  The initial PoC involved Ollama (with Qwen3:8b), the MAF code and a Docling MCP server to parse out a PDF (an RFP) and generate answers.  I then added basic RAG (using Chromadb) to store the extracted text.  This developed into the direction I am now taking of building PoC's for both sides of an RFP factory (hving been on both sides of the RFP process many, many times I know how painful it can be).
