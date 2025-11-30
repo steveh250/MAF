@@ -18,10 +18,12 @@ This is for the procurement teams that receive the RFP's and generate an initial
 ## Phase 1 - MVP
  - [ ] Get rid of the async error messages.
  - [X] Add RAG (FAISS/Chroma) for input data to ground questions. (See MAF-Agent-MCP-RAG.py)
+ - [ ] Add Word document creation to store output.
+ - [ ] Pass files in as parameters.
 
 ### Phase 2 - Enhancements
  - Try larger Qwen models (qwen3:14b is also 4bit quantized,Q4_K_M, it should be able to be run in about 8GB with about 22GB needed for any decent context window size, qwen3:30b may be a bit too large with any large enough context window).
- - Add conversational, multi-turn (this doesn't quite fit the factory model but would be fun)
+ - Add conversational, multi-turn (this doesn't quite fit the factory model but would be fun - would be more suited to an interactive solution).
  - Automate: Develop cron shell script to monitor folder for PDF's, process the PDF and generate response.
  - Add email support to send out the responses by email.
 
