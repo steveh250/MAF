@@ -1,0 +1,210 @@
+## Author: Steve Harris
+# Purpose: MAF Agent with RAG that assesses an incoming RFP against a rubric.
+# NOTES:
+#  - Requires: pip install chromadb python-docx
+
+import asyncio
+import uuid
+import sys
+import chromadb
+from chromadb.utils import embedding_functions
+from agent_framework import ChatAgent, MCPStreamableHTTPTool
+from agent_framework.openai import OpenAIChatClient
+from docx import Document
+from datetime import datetime
+import logging
+
+# Suppress noisy MCP async generator cleanup warnings
+logging.getLogger('asyncio').setLevel(logging.CRITICAL)
+
+# --- RAG Manager Class Implementation ---
+
+class RAGManager:
+    def __init__(self):
+        self.client = chromadb.Client()
+        self.ef = embedding_functions.DefaultEmbeddingFunction()
+        self.collection = self.client.get_or_create_collection(
+            name="rfp_knowledge",
+            embedding_function=self.ef
+        )
+
+    def reset_database(self):
+        """Clears existing data to ensure fresh context."""
+        try:
+            self.client.delete_collection("rfp_knowledge")
+        except:
+            pass
+        self.collection = self.client.get_or_create_collection(
+            name="rfp_knowledge",
+            embedding_function=self.ef
+        )
+        return "Database reset successfully."
+
+    def add_document(self, content: str, source: str) -> str:
+        """
+        Adds text content to the vector database.
+        Args:
+            content: The text (markdown) to add.
+            source: A label for where this text came from (e.g., "Company Profile", "RFP").
+        """
+
+        name="add_to_knowledge_base",
+        description="Saves text to the vector DB. Requires 'content' and 'source' (e.g., 'Company Info' or 'RFP').",
+
+        # Split by double newline to create logical chunks
+
+        chunks = [c for c in content.split("\n\n") if c.strip()]
+
+        if not chunks:
+            return "No content found to add."
+
+        ids = [str(uuid.uuid4()) for _ in chunks]
+        metadatas = [{"source": source} for _ in chunks]
+
+        self.collection.add(
+            documents=chunks,
+            metadatas=metadatas,
+            ids=ids
+        )
+        print(f"--- [RAG] Ingested {len(chunks)} chunks from source: {source} ---")
+        return f"Successfully added {len(chunks)} chunks from '{source}' to the knowledge base."
+
+    def query_knowledge(self, query: str, n_results: int = 5) -> str:
+        """
+        Queries the vector database for relevant context.
+        """
+
+        name="query_knowledge_base",
+        description="Searches the vector DB for answers. Useful for matching RFP requirements to Company capabilities.",
+
+        results = self.collection.query(
+            query_texts=[query],
+            n_results=n_results
+        )
+
+        context = ""
+        if results['documents']:
+            for i, (doc, meta) in enumerate(zip(results['documents'][0], results['metadatas'][0])):
+                source_label = meta.get('source', 'Unknown')
+                context += f"-- Result {i+1} (Source: {source_label}) --\n{doc}\n\n"
+
+        return context if context else "No relevant information found in the knowledge base."
+
+def save_to_word(result, output_filename: str = "rfp_assessment.docx"):
+    """Saves the agent's output to a Word document."""
+    # Extract text content from AgentRunResponse object
+    if hasattr(result, 'text'):
+        content = result.text
+    elif hasattr(result, 'content'):
+        content = result.content
+    else:
+        content = str(result)
+
+    doc = Document()
+    doc.add_heading('RFP Response Document', 0)
+    timestamp = doc.add_paragraph()
+    timestamp.add_run(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}").italic = True
+    doc.add_paragraph()
+
+    for paragraph in content.split('\n\n'):
+        if paragraph.strip():
+            if paragraph.strip().startswith('#'):
+                level = len(paragraph) - len(paragraph.lstrip('#'))
+                heading_text = paragraph.lstrip('#').strip()
+                doc.add_heading(heading_text, level=min(level, 3))
+            else:
+                doc.add_paragraph(paragraph.strip())
+
+    doc.save(output_filename)
+    print(f"\n✓ Response saved to: {output_filename}")
+    return output_filename
+
+async def run_agent(company_info_file: str, rfp_file: str, output_file: str = "rfp_assessment.docx"):
+    # 1. Initialize RAG and Reset DB
+    rag_manager = RAGManager()
+    rag_manager.reset_database()
+
+    # 2. Initialize Chat Client
+    chat_client = OpenAIChatClient(
+        model_id="qwen3:8b-40k",
+        api_key="ollama",
+        base_url="http://localhost:11434/v1",
+    )
+
+    # 3. Define Tools
+    docling_tool = MCPStreamableHTTPTool(
+        name="docling_tool",
+        description="Convert a PDF to Markdown using docling MCP server",
+        url="http://localhost:8000/mcp",
+    )
+
+    print(f"Assessment Rubric: {rubric_info_file}")
+    print(f"RFP Target: {rfp_file}")
+    print(f"Output File: {output_file}\n")
+
+    # 4. Create Agent
+    agent = chat_client.create_agent(
+        name="RFP Response Assessor",
+        instructions="""You are an expert n procurement and RFP response assessor. Your goal is to assess an RFP response against a Rubric.
+
+        You have a specific workflow you must follow:
+        1. INGESTION: You must read documents using 'docling_tool' and immediately save them to your database using 'rag_manager.add_document'.
+        2. RETRIEVAL: When answering questions, you must use 'rag_manager.query_knowledge' to find the specific RFP requirement AND the matching Company capability to ensure the answer is grounded in fact.
+        """,
+        tools=[docling_tool, rag_manager.add_document, rag_manager.query_knowledge]
+    )
+
+    # 5. Run the Agent with a Phased Prompt
+    # We explicitly tell the agent to load the Company Info FIRST, then the RFP.
+    try:
+        result = await agent.run(
+            f"""
+            Step 1: Perform INGESTION
+            Convert the file at '{rubric_info_file}' to markdown and add it to the knowledge base with source="Rubric Info".
+            Convert the file at '{rfp_file}' to markdown and add it to the knowledge base with source="RFP".
+
+            Step 2: Generate Responses.
+            Work through the RFP response and compare each response to the Rubric:
+            - Analyse each question in detail against the Rubric and provide a missed, matched, exceeded score for each response.
+            - Draft an initial overall assessment and explanation for your assessment.
+            - Based on the assessment recommend whether this RFP reponse should proceed to the next stage of human assessment.
+            """
+        )
+
+        print(f"Agent: {result}\n\n")
+
+        return result
+    finally:
+        # Ensure proper cleanup of agent resources
+        if hasattr(agent, 'cleanup'):
+            await agent.cleanup()
+        # Give async generators time to clean up
+        await asyncio.sleep(0.1)
+
+if __name__ == "__main__":
+    # Default file paths
+    default_rubric_info = "/home/ubuntu/MAF/rubric.docx"
+    default_rfp = "/home/ubuntu/MAF/rfp_response.docx"
+    default_output = "rfp_assessment.docx"
+
+    # Parse command line arguments
+    if len(sys.argv) >= 3:
+        company_info_file = sys.argv[1]
+        rfp_file = sys.argv[2]
+        output_file = sys.argv[3] if len(sys.argv) >= 4 else default_output
+    else:
+        print("Usage: python rfp_agent.py <rubric_info> <response_file> [output_docx]")
+        print(f"\nUsing default files:")
+        print(f"  Rubric Info: {default_rubric_info}")
+        print(f"  RFP response: {default_rfp}")
+        print(f"  Output: {default_output}\n")
+        rubric_info_file = default_rubric_info
+        rfp_file = default_rfp
+        output_file = default_output
+
+    # Run agent and save result
+    result = asyncio.run(run_agent(rubric_info_file, rfp_file, output_file))
+
+    # Save to Word after async execution completes
+    save_to_word(result, output_file)
+
