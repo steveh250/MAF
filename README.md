@@ -16,10 +16,10 @@ This is for the procurement teams that receive the RFP's and generate an initial
 ## RFP Response Generator
 
 ## Phase 1 - MVP
- - [ ] Get rid of the async error messages.
+ - [X] Get rid of the async error messages.
  - [X] Add RAG (FAISS/Chroma) for input data to ground questions. (See MAF-Agent-MCP-RAG.py)
- - [ ] Add Word document creation to store output.
- - [ ] Pass files in as parameters.
+ - [X] Add Word document creation to store output.
+ - [X] Pass files in as parameters (with defaults).
 
 ### Phase 2 - Enhancements
  - Try larger Qwen models (qwen3:14b is also 4bit quantized,Q4_K_M, it should be able to be run in about 8GB with about 22GB needed for any decent context window size, qwen3:30b may be a bit too large with any large enough context window, although I suspect we will get a better quality RFP respnse from this larger model).
