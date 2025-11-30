@@ -26,6 +26,10 @@ This is for the procurement teams that receive the RFP's and generate an initial
  - Add conversational, multi-turn (this doesn't quite fit the factory model but would be fun - would be more suited to an interactive solution).
  - Automate: Develop cron shell script to monitor folder for PDF's, process the PDF and generate response.
  - Add email support to send out the responses by email.
+ - I suspect the basic rag is insufficient to make this production ready - maybe even use A2A and MAO to have a seperate agent answer the questions (may be getting to tool overload).
+ - QA
+ 	- Add a QA portion to the prompt - persona based.
+  	- Add ability to pull in files that describe the customer and store them in ChromaDB.
 
 ## RFP Response Assessor
 
