@@ -1,4 +1,4 @@
-# Author: Steve Harris
+## Author: Steve Harris
 # Purpose: MAF Agent with RAG that checks Company Info against an RFP
 # NOTES:
 #  - Requires: pip install chromadb
@@ -20,6 +20,7 @@ class RAGManager:
             name="rfp_knowledge",
             embedding_function=self.ef
         )
+
     def reset_database(self):
         """Clears existing data to ensure fresh context."""
         try:
@@ -105,7 +106,7 @@ async def run_agent():
     # The static company information (Capabilities, History, etc.)
     company_info_file = "/home/ubuntu/MAF/MyCompany-Capabilities-Test.pdf"
     # The specific RFP we are answering today
-    rfp_file = "/home/ubuntu/MAF/MCPTest.pdf"
+    rfp_file = "/home/ubuntu/MAF/Sample-RFP-Managed-Services.pdf"
 
     print(f"Company Profile: {company_info_file}")
     print(f"RFP Target: {rfp_file}\n")
@@ -116,8 +117,8 @@ async def run_agent():
         instructions="""You are an expert Bid Manager. Your goal is to write a winning response to an RFP.
 
         You have a specific workflow you must follow:
-        1. INGESTION: You must read documents using 'docling_tool' and immediately save them to your database using 'add_to_knowledge_base'.
-        2. RETRIEVAL: When answering questions, you must use 'query_knowledge_base' to find the specific RFP requirement AND the matching Company capability to ensure the answer is grounded in fact.
+        1. INGESTION: You must read documents using 'docling_tool' and immediately save them to your database using 'rag_manager.add_document'.
+        2. RETRIEVAL: When answering questions, you must use 'rag_manager.query_knowledge' to find the specific RFP requirement AND the matching Company capability to ensure the answer is grounded in fact.
         """,
         tools=[docling_tool, rag_manager.add_document, rag_manager.query_knowledge]
     )
@@ -133,7 +134,7 @@ async def run_agent():
         Convert the file at '{rfp_file}' to markdown and add it to the knowledge base with source="RFP".
 
         Step 3: Generate Responses.
-        Scan the RFP data for the top 3 requirements. For each requirement:
+        Scan the RFP data for the top 3 requirements or question that we need to respond to. iThen, for each requirement or question:
         - Search the knowledge base for our company's matching capability.
         - Draft a response citing our specific experience.
         """
