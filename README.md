@@ -9,7 +9,7 @@ The factory analogy has been used as I imagine these working in the background, 
 The thinking behind this is that it will truly be a factory, a self contained Python script that is woken up by a cron job (with a shell script wrapper), that looks in two folders for an RFP to process and company information, it then builds an RFP response into a Word document which it saves - useful for sales or pursuit teams to reduce the amount of time spent on preparing RFP responses.
 
 ### Factory - RFP Response Assessor
-This is for the procurement teams that receive the RFP's and generate an initial assessment based on a rubric.  This is useful in imprroving the RFP assessment process to reduce effort (what typically happens is that procurement teams have an initial set of criteria to filter out responses before they are passed to the actual assessors but usually have limited expertise to do anything but a basic assessment - this assement agent will help filter out weak responses as well as provide an initial assessment to the downstream human assessors).
+This is for the procurement teams that receive the RFP's and generate an initial assessment based on a rubric.  This is useful in improving the RFP assessment process to reduce effort (what typically happens is that procurement teams have an initial set of criteria to filter out responses before they are passed to the actual assessors but usually have limited expertise to do anything but a basic assessment) - this assement agent will help filter out weak responses as well as provide an initial assessment to the downstream human assessors.
 
 # Development Tasks
 
