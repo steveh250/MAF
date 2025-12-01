@@ -23,6 +23,8 @@ This is for the procurement teams that receive the RFP's and generate an initial
 
 ### Phase 2 - Enhancements
  - Improve prompts (looking at the reasoning output it seems like the prompt maybe confusing - which allso leads to lots of LLM time and a slow down in the process - can see the number and duration of LLM interactions from the Ollama logs).
+ 	- Clear up the confusing overlap between Instructions and Prompt
+ 	- Try processing one question at a time (given a very small context window this might improve and increase the text we get back in response to each requirement or question) - as would a larger model + context window.
  - Try larger Qwen models (qwen3:14b is also 4bit quantized,Q4_K_M, it should be able to be run in about 8GB with about 22GB needed for any decent context window size, qwen3:30b may be a bit too large with any large enough context window, although I suspect we will get a better quality RFP respnse from this larger model).
  - Add conversational, multi-turn (this doesn't fit the factory model but would be fun - would be more suited to an interactive solution).
  - Automate: Develop cron shell script to monitor folder for PDF's, process the PDF and generate response (whether that is drafting a response or assessing a rubric).
