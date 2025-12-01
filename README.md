@@ -42,6 +42,11 @@ This is for the procurement teams that receive the RFP's and generate an initial
 
 # Observations
 
+##Capturing Reasoning
+Initially I didn't want to capture the reasoning information in the Word document but quickly changed my mind as:
+ - _Prompt performance_: Taking the Ollama logs and seeing the number and duration of the inferences I could see, combined with the reasoning output, that there is an opportunity to improve the performance by making the prompts clearer.
+ - _Transparency_: For the person receiving the output the reasoning provide some insight into the models reasoning process.
+
 ## Ollama truncating prompts
 Noticed this in the Ollama logs: 'Nov 02 22:57:57 ollama[1011]: time=2025-11-02T22:57:57.174Z level=WARN source=runner.go:159 msg="truncating input prompt" limit=4096 prompt=7268 keep=4 new=4096'
  - Didn't seem able to use things like extra_body in the Python code for the Ollama setup to be able to modify the context window size.
