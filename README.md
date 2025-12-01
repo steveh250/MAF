@@ -42,7 +42,8 @@ This is for the procurement teams that receive the RFP's and generate an initial
 
 # Observations
 
-##Capturing Reasoning
+## Capturing Reasoning
+
 Initially I didn't want to capture the reasoning information in the Word document but quickly changed my mind as:
  - _Prompt performance_: Taking the Ollama logs and seeing the number and duration of the inferences I could see, combined with the reasoning output, that there is an opportunity to improve the performance by making the prompts clearer.
  - _Transparency_: For the person receiving the output the reasoning provide some insight into the models reasoning process.
