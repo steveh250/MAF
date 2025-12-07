@@ -48,6 +48,9 @@ Initially I didn't want to capture the reasoning information in the Word documen
  - _Prompt performance_: Wathcing the Ollama logs and seeing the number and duration of the inferences I could see, combined with the reasoning output, that there is an opportunity to improve the performance by making the prompts clearer.
  - _Transparency_: For the person receiving the output the reasoning provides some insight into the models reasoning process.
 
+## Model Size
+I optimized the prompt as much as possible and the 8B model was giving good answers.  I upgraded to the Qwen:14B model and it made a massive difference - thoght more clearly and when it encountered errors provided much clearer explanations of the errors and selected tools more clearly.
+
 ## Ollama truncating prompts
 Noticed this in the Ollama logs: 'Nov 02 22:57:57 ollama[1011]: time=2025-11-02T22:57:57.174Z level=WARN source=runner.go:159 msg="truncating input prompt" limit=4096 prompt=7268 keep=4 new=4096'
  - Didn't seem able to use things like extra_body in the Python code for the Ollama setup to be able to modify the context window size.
