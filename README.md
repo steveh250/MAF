@@ -53,6 +53,7 @@ Noticed this in the Ollama logs: 'Nov 02 22:57:57 ollama[1011]: time=2025-11-02T
  - Didn't seem able to use things like extra_body in the Python code for the Ollama setup to be able to modify the context window size.
  - Found this article: https://github.com/ollama/ollama/issues/8099
  - Applied these changes - including changing the model name in the Python script and worked much better.
+ - Also saw the same message with the 14B model, used same approach to fix.
 
 ```
    		(venv) ubuntu:~/MAF$ ollama run qwen3:8b
