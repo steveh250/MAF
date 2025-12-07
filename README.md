@@ -51,6 +51,9 @@ Initially I didn't want to capture the reasoning information in the Word documen
 ## Model Size
 I optimized the prompt as much as possible and the 8B model was giving good answers.  I upgraded to the Qwen:14B model and it made a massive difference - thoght more clearly and when it encountered errors provided much clearer explanations of the errors and selected tools more clearly.
 
+## Question Answering
+It became apparent, even after upgrading to the 14B model that the apporach of answering all the RFP requirements in one go by an agent wasn't going to work (maybe a fucntion of the # of parameters and context window of the smaller models).  Took a different approach of using the model to extract the requirements and then process them one at a time (an approach I have had a lot of success with when manually responding to RFP's and Grant Requests using models).
+
 ## Ollama truncating prompts
 Noticed this in the Ollama logs: 'Nov 02 22:57:57 ollama[1011]: time=2025-11-02T22:57:57.174Z level=WARN source=runner.go:159 msg="truncating input prompt" limit=4096 prompt=7268 keep=4 new=4096'
  - Didn't seem able to use things like extra_body in the Python code for the Ollama setup to be able to modify the context window size.
