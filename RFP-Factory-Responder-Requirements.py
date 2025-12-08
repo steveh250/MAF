@@ -93,6 +93,9 @@ class RAGManager:
         print(f"Knowledge query executed: '{query}'\n")
         return context if context else "No relevant information found in the knowledge base."
 
+# Instantiate a global rag_manager
+rag_manager = RAGManager()
+
 
 def save_to_json(result, output_filename: str = "rfp_response.json"):
     """Extracts JSON payload for output file and saves model reasoning trace separately for audit."""
@@ -269,9 +272,8 @@ def iter_answerable_nodes(node, path=None):
                 "requirements": [str(node)]
             }
 
-async def run_agent(rfp_file: str, output_file: str = "rfp_response.json"):
-    # 1. Initialize RAG and Reset DB
-    rag_manager = RAGManager()
+async def run_agent(rfp_file: str, output_file: str = "rfp_response.json", company_info_file:str | None = None):
+    # 1. Initialize RAG DB
     rag_manager.reset_database()
 
     # 2. Initialize Chat Client
@@ -311,7 +313,7 @@ async def run_agent(rfp_file: str, output_file: str = "rfp_response.json"):
            - Saves markdown text into the knowledge base.
            - Parameters:
                - content: the markdown text you want to store.
-               - source: "RFP".
+               - source: "RFP" for RFP content and "company-Info" for company information.
            - Always call this after using docling_tool to ingest the document.
 
         3. rag_manager.query_knowledge
@@ -355,10 +357,21 @@ async def run_agent(rfp_file: str, output_file: str = "rfp_response.json"):
 
         TASK
         ----
-        1. Perform your full ingestion phase for the RFP PDF:
-        2. List all the of information you have extracted from the RFP PDF.
+        1. Perform your full ingestion phase for the RFP PDF.
+           - Use docling_tool to convert the RFP-PDF to markdown.
+           - Call rag_manager.add_document with source="RFP".
 
-        The final output of this will be in a format that will be saved in a JSON document.
+        2. If a company information document is provided, ingest it as well:
+           - Use docling_tool to convert the company information document to markdown.
+           - Call rag_manager.add_document with source="Company-Info".
+
+        3. Then work through the RFP and extract:
+           - Scope of work
+           - Proposal response format and requirements
+           - Evaluation criteria
+           - Any other sections that need responses.
+
+        4. Output the requirements in JSON format, retaining the RFP document hierarchy exactly as it appears in the RFP.
         """
         )
 
@@ -387,22 +400,12 @@ async def generate_section_responses(requirements_json_path: str,
 
     If company_info_path is provided, the file is ingested into the RAG
     as 'Company-Info' and used when generating responses.
+
+    Assumes the RAG database has already been populated with:
+    - RFP content (source='RFP')
+    - Company information (source='Company-Info', if provided)
+    by the extraction agent.
     """
-
-    # Reconnect to the existing RAG DB (which may contain RFP text, depending on setup)
-    rag_manager = RAGManager()
-
-    # --- NEW: Ingest company information into the RAG, if provided ---
-    if company_info_path:
-        try:
-            with open(company_info_path, "r", encoding="utf-8") as cf:
-                company_text = cf.read()
-            rag_manager.add_document(company_text, source="Company-Info")
-            print(f"--- [RAG] Ingested company profile from: {company_info_path} ---")
-        except FileNotFoundError:
-            print(f"[RAG] WARNING: Company info file not found: {company_info_path}")
-        except Exception as e:
-            print(f"[RAG] WARNING: Failed to ingest company info: {e}")
 
     chat_client = OpenAIChatClient(
         model_id="qwen3:14b-40k",
@@ -662,7 +665,7 @@ if __name__ == "__main__":
     # Default file paths
     default_rfp = "/home/ubuntu/MAF/Sample-RFP-Managed-Services.pdf"
     default_output = "/home/ubuntu/MAF/rfp_requirements.json"
-    default_company_info = "/home/ubuntu/MAF/MyCompany-Capabilities-Test.pdf"  # NEW: no default company file
+    default_company_info = "/home/ubuntu/MAF/MyCompany-Capabilities-Test.pdf"
 
     # Parse command line arguments
     if len(sys.argv) >= 2:
@@ -680,7 +683,7 @@ if __name__ == "__main__":
         company_info_file = default_company_info
 
     # 1) Run extraction agent and save result
-    result = asyncio.run(run_agent(rfp_file, output_file))
+    result = asyncio.run(run_agent(rfp_file, output_file, company_info_file))
     save_to_json(result, output_file)
 
     # 2) Run per-section response agent over the extracted JSON (with optional company info)
