@@ -292,6 +292,7 @@ async def run_agent(rfp_file: str, output_file: str = "rfp_response.json", compa
     )
 
     print(f"RFP Target: {rfp_file}")
+    print(f"Company Info: {company_info_file}")
     print(f"Output File: {output_file}\n")
 
     # 4. Create Agent (EXTRACTION AGENT)
@@ -354,6 +355,7 @@ async def run_agent(rfp_file: str, output_file: str = "rfp_response.json", compa
         INPUT FILES
         -----------
         - RFP-PDF: '{rfp_file}'
+        - Company-PDF: '{company_info_file}'
 
         TASK
         ----
@@ -361,7 +363,7 @@ async def run_agent(rfp_file: str, output_file: str = "rfp_response.json", compa
            - Use docling_tool to convert the RFP-PDF to markdown.
            - Call rag_manager.add_document with source="RFP".
 
-        2. If a company information document is provided, ingest it as well:
+        2. If a company information document is provided,n '{company_info_file}' ingest it as well:
            - Use docling_tool to convert the company information document to markdown.
            - Call rag_manager.add_document with source="Company-Info".
 
@@ -431,9 +433,7 @@ async def generate_section_responses(requirements_json_path: str,
         - Draft a concise, professional response in Markdown.
         - Address each requirement explicitly.
         - Align your answer with standard managed IT services capabilities.
-        - When company information is available in the knowledge base,
-          explain how our specific capabilities, services, experience,
-          certifications, and differentiators meet these requirements.
+        - When company information is available in the knowledge base, explain how our specific capabilities, services, experience, certifications, and differentiators meet these requirements.
         - Do not include JSON or code fences; output plain Markdown only.
 
         USE OF KNOWLEDGE BASE
@@ -443,13 +443,10 @@ async def generate_section_responses(requirements_json_path: str,
           and "Company-Info").
         - Call this tool whenever you need factual details about:
             * The exact RFP wording and surrounding context; and/or
-            * The company's capabilities, services, experience, certifications,
-              locations, and differentiators.
+            * The company's capabilities, services, experience, certifications, locations, and differentiators.
         - Prefer retrieved company-specific details over generic statements.
-        - Never fabricate capabilities or claims that are not supported by
-          retrieved information.
-        - Summarize, but do not contradict, the RFP requirements or company
-          information.
+        - Never fabricate capabilities or claims that are not supported by retrieved information.
+        - Summarize, but do not contradict, the RFP requirements or company information.
 
         STYLE
         -----
@@ -502,19 +499,15 @@ Original RFP requirements:
 
 TASK
 ----
-1. If helpful, first call your knowledge tool (rag_manager.query_knowledge)
-   using a query that includes the section title and key requirement terms.
+1. If helpful, first call your knowledge tool (rag_manager.query_knowledge) using a query that includes the section title and key requirement terms.
    Use this to retrieve:
    - The precise RFP context, and
-   - Any relevant company information (from 'Company-Info') that describes
-     our capabilities, services, experience, certifications, and
-     differentiators related to this section.
+   - Any relevant company information (from 'Company-Info') that describes our capabilities, services, experience, certifications, and differentiators related to this section.
 
 2. Then draft a concise, professional answer in Markdown that:
    - Clearly addresses each bullet above.
    - Uses first-person plural ("we") to describe the service provider.
-   - Incorporates retrieved company-specific details wherever relevant,
-     instead of generic statements.
+   - Incorporates retrieved company-specific details wherever relevant, instead of generic statements.
    - Is suitable to paste directly into an RFP response document.
 
 Remember: output Markdown only, no JSON, no code fences.
@@ -522,6 +515,7 @@ Remember: output Markdown only, no JSON, no code fences.
 
             result = await response_agent.run(prompt)
             answer_text = extract_main_content(result).strip()
+            print(f"Answer Text: {answer_text}\n")
 
             answers[section_path] = {
                 "section_id": section_id,
