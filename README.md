@@ -23,6 +23,7 @@ This is for the procurement teams that receive the RFP's and generate an initial
  - [X] Try larger Qwen models (14b runs just fine - needed context window modified).
  - [X] Improved prompts to sure overlap (got better responses).
  - [ ] Built version to extract RFP contents into JSON and then loop through the individual JSON sections and develop responses (replicates what I do manually with GenAI's), all consolidated into a final word document.
+ 	- [X] Keep JSON as intermediate format as it's entriely possible the RFP reponse could feed into an automated assessor that would ingest the JSON and assess it (easier to assess than parsing a word document).
 
 ### Phase 2 - Enhancements
  - Improve prompts (looking at the reasoning output it seems like the prompt maybe confusing - which allso leads to lots of LLM time and a slow down in the process - can see the number and duration of LLM interactions from the Ollama logs).
