@@ -21,12 +21,12 @@ This is for the procurement teams that receive the RFP's and generate an initial
  - [X] Add Word document creation to store output.
  - [X] Pass files in as parameters (with defaults).
  - [X] Try larger Qwen models (14b runs just fine - needed context window modified).
- - [X] Improved prompts to sure overlap (got better responses).
- - [ ] Built version to extract RFP contents into JSON and then loop through the individual JSON sections and develop responses (replicates what I do manually with GenAI's), all consolidated into a final word document.
+ - [X] Improved prompts to reduce instructtion and user prompt overlap (got better responses and less reasoning).
+ - [X] Built version to extract RFP contents into JSON and then loop through the individual JSON sections and develop responses (replicates what I do manually with GenAI's), all consolidated into a final word document.  This worked really well and was a major enhancement.
  	- [X] Keep JSON as intermediate format as it's entriely possible the RFP reponse could feed into an automated assessor that would ingest the JSON and assess it (easier to assess than parsing a word document).
 
 ### Phase 2 - Enhancements
- - Improve prompts (looking at the reasoning output it seems like the prompt maybe confusing - which allso leads to lots of LLM time and a slow down in the process - can see the number and duration of LLM interactions from the Ollama logs).
+ - Fix the company information ingestion and RAG extraction - the model is still hallucinating.
  - Try larger Qwen models - qwen3:30b may be a bit too large with any large enough context window, although I suspect we will get a better quality RFP respnse from this larger model).
  - Add conversational, multi-turn (this doesn't fit the factory model but would be fun - would be more suited to an interactive solution).
  - Automate: Develop cron shell script to monitor folder for PDF's, process the PDF and generate response (whether that is drafting a response or assessing a rubric).
@@ -44,7 +44,6 @@ This is for the procurement teams that receive the RFP's and generate an initial
 # Observations
 
 ## Capturing Reasoning
-
 Initially I didn't want to capture the reasoning information in the Word document but quickly changed my mind as:
  - _Prompt performance_: Wathcing the Ollama logs and seeing the number and duration of the inferences I could see, combined with the reasoning output, that there is an opportunity to improve the performance by making the prompts clearer.
  - _Transparency_: For the person receiving the output the reasoning provides some insight into the models reasoning process.
@@ -61,7 +60,7 @@ https://github.com/steveh250/MAF-RFP-Factory/blob/main/RFP-Factory-Responder.py
 For version 4b11400 I worked on forcing the agent to load the RFP into the vector database but it didn't do a very good job at all of extracting the requirements from the vector database - it did a much better job when it seemed to just process the Docling markdown.  Reverted back to a previous version and worked on ensuring the company information was stored in the vector database.
 
 ## Question Answering
-It became apparent, even after upgrading to the 14B model that the apporach of answering all the RFP requirements in one go by an agent wasn't going to work (maybe a fucntion of the # of parameters and context window of the smaller models).  Took a different approach of using the model to extract the requirements and then process them one at a time (an approach I have had a lot of success with when manually responding to RFP's and Grant Requests using models).
+It became apparent, even after upgrading to the 14B model that the approach of answering all the RFP requirements in one go by an agent wasn't going to work (maybe a function of the context window size of the smaller models).  Took a different approach of using the model to extract the requirements and then process them one at a time (an approach I have had a lot of success with when manually responding to RFP's and Grant Requests using models) - this improved the quality of the output dramatically and it also, as expected, took longer to generate a document as the model was being called for each JSON element (RFP requirement).
 
 ## Ollama truncating prompts
 Noticed this in the Ollama logs: 'Nov 02 22:57:57 ollama[1011]: time=2025-11-02T22:57:57.174Z level=WARN source=runner.go:159 msg="truncating input prompt" limit=4096 prompt=7268 keep=4 new=4096'
