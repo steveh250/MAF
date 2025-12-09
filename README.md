@@ -56,7 +56,7 @@ I optimized the prompt as much as possible and the 8B model was giving good answ
 ## Docling Failures
 I was getting Docling failures and it looked like the model was calling Docling with an incorrect max_size format.  Added the following to the agent prompt to solve that.
 ```
-https://github.com/steveh250/MAF-RFP-Factory/blob/main/RFP-Factory-Responder.py
+Do NOT pass numeric values for max_size, either omit max_size entirely or pass it as a string, e.g. "100"; if you are unsure, omit max_size so the default is used.
 ```
 ## RAG Problem when used for RFP Processing
 For version 4b11400 I worked on forcing the agent to load the RFP into the vector database but it didn't do a very good job at all of extracting the requirements from the vector database - it did a much better job when it seemed to just process the Docling markdown.  Reverted back to a previous version and worked on ensuring the company information was stored in the vector database.  This may have worked better to store the JSON in the vector database after processing the RFP with some form of prefix to identify it as a requirement - I can't imagine this being an issue unless the RFP was absolutely huge.
