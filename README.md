@@ -52,6 +52,14 @@ Initially I didn't want to capture the reasoning information in the Word documen
 ## Model Size
 I optimized the prompt as much as possible and the 8B model was giving good answers.  I upgraded to the Qwen:14B model and it made a massive difference - thoght more clearly and when it encountered errors provided much clearer explanations of the errors and selected tools more clearly.
 
+## Docling Failures
+I was getting Docling failuers and it looked like the model was calling Docling with an incorrect max_size format.  Added the following to the agent prompt to solve that.
+```
+https://github.com/steveh250/MAF-RFP-Factory/blob/main/RFP-Factory-Responder.py
+```
+## RAG Problem when used for RFP Processing
+For version 4b11400 I worked on forcing the agent to load the RFP into the vector database but it didn't do a very good job at all of extracting the requirements from the vector database - it did a much better job when it seemed to just process the Docling markdown.  Reverted back to a previous version and worked on ensuring the company information was stored in the vector database.
+
 ## Question Answering
 It became apparent, even after upgrading to the 14B model that the apporach of answering all the RFP requirements in one go by an agent wasn't going to work (maybe a fucntion of the # of parameters and context window of the smaller models).  Took a different approach of using the model to extract the requirements and then process them one at a time (an approach I have had a lot of success with when manually responding to RFP's and Grant Requests using models).
 
