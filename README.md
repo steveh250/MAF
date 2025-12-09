@@ -54,7 +54,7 @@ Initially I didn't want to capture the reasoning information in the Word documen
 I optimized the prompt as much as possible and the 8B model was giving good answers.  I upgraded to the Qwen:14B model and it made a massive difference - thought more clearly and when it encountered errors provided much clearer explanations of the errors and selected tools more clearly.
 
 ## Docling Failures
-I was getting Docling failuers and it looked like the model was calling Docling with an incorrect max_size format.  Added the following to the agent prompt to solve that.
+I was getting Docling failures and it looked like the model was calling Docling with an incorrect max_size format.  Added the following to the agent prompt to solve that.
 ```
 https://github.com/steveh250/MAF-RFP-Factory/blob/main/RFP-Factory-Responder.py
 ```
