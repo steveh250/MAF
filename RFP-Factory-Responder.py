@@ -68,15 +68,28 @@ class RAGManager:
         print(f"--- [RAG] Ingested {len(chunks)} chunks from source: {source} ---")
         return f"Successfully added {len(chunks)} chunks from '{source}' to the knowledge base."
 
-    def query_knowledge(self, query: str, n_results: int = 10) -> str:
+    def query_knowledge(self, query: str, n_results: int = 10, source_filter: str = None) -> str:
         """
-        Queries the vector database for relevant context. Used to answer questions or requirements in the RFP by pulling the company information.
+        Queries the vector database for relevant context.
+        Args:
+            query: What you are looking for
+            n_results: Number of results to return (default: 10)
+            source_filter: Optional source to filter results by (e.g., "Company-Info", "RFP")
         """
 
-        results = self.collection.query(
-            query_texts=[query],
-            n_results=n_results
-        )
+        # VERIFY: Check what's being queried
+        print(f"--- [RAG] Querying: '{query}' with filter: {source_filter} ---")
+
+        query_params = {
+            "query_texts": [query],
+            "n_results": n_results
+        }
+
+        # Add metadata filter if source_filter is provided
+        if source_filter:
+            query_params["where"] = {"source": source_filter}
+
+        results = self.collection.query(**query_params)
 
         context = ""
         if results['documents']:
@@ -84,9 +97,14 @@ class RAGManager:
                 source_label = meta.get('source', 'Unknown')
                 context += f"-- Result {i+1} (Source: {source_label}) --\n{doc}\n\n"
 
-        print(f"Knowledge query executed: '{query}'\n")
-        return context if context else "No relevant information found in the knowledge base."
+        # VERIFY: Check results
+        if results['documents'] and results['documents'][0]:
+             print(f"--- [RAG] Found {len(results['documents'][0])} results ---")
+        else:
+             print(f"--- [RAG] NO RESULTS FOUND ---")
 
+        print(f"Knowledge query executed: '{query}' (filter: {source_filter})\n")
+        return context if context else "No relevant information found in the knowledge base."
 
 
 def save_to_json(result, output_filename: str = "rfp_response.json"):
@@ -264,13 +282,12 @@ def iter_answerable_nodes(node, path=None):
                 "requirements": [str(node)]
             }
 
-async def run_agent(rfp_file: str, company_info_files: str, output_file: str = "rfp_response.json"):
+async def run_agent(rfp_file: str, company_info_file: str, output_file: str = "rfp_response.json"):
     # 1. Initialize RAG DB
     rag_manager.reset_database()
 
     # 2. Initialize Chat Client
     chat_client = OpenAIChatClient(
-      # model_id="qwen3:8b-40k",
         model_id="qwen3:14b-40k",
         api_key="ollama",
         base_url="http://localhost:11434/v1",
@@ -279,7 +296,7 @@ async def run_agent(rfp_file: str, company_info_files: str, output_file: str = "
     # 3. Define Tools
     docling_tool = MCPStreamableHTTPTool(
         name="docling_tool",
-        description="Use for document conversion.  Convert a PDF to Markdown using docling MCP server.",
+        description="Use for document conversion. Convert a PDF to Markdown using docling MCP server.",
         url="http://localhost:8000/mcp",
     )
 
@@ -287,102 +304,118 @@ async def run_agent(rfp_file: str, company_info_files: str, output_file: str = "
     print(f"Company Info: {company_info_file}")
     print(f"Output File: {output_file}\n")
 
-    # 4. Create Agent (EXTRACTION AGENT)
+    # ============================================================
+    # NEW: EXPLICIT COMPANY INFO INGESTION BEFORE AGENT RUNS
+    # ============================================================
+    if company_info_file and os.path.exists(company_info_file):
+        print(f"\n{'='*60}")
+        print(f"PRE-INGESTING COMPANY INFORMATION")
+        print(f"{'='*60}\n")
+
+        # Create a temporary agent just for ingestion
+        ingestion_agent = chat_client.create_agent(
+            name="Document Ingestion Agent",
+            instructions="""
+            You are a document ingestion specialist.
+
+            Your ONLY job is to:
+            1. Use docling_tool to convert the provided PDF to markdown
+            2. Call rag_manager.add_document with the markdown content and source="Company-Info"
+
+            Do NOT do anything else. Do NOT analyze or summarize.
+            Just convert and ingest.
+            """,
+            tools=[docling_tool, rag_manager.add_document]
+        )
+
+        try:
+            ingestion_result = await ingestion_agent.run(
+                f"Convert '{company_info_file}' to markdown using docling_tool, "
+                f"then save it to the knowledge base with source='Company-Info'."
+            )
+            print(f"\nIngestion Result: {ingestion_result}\n")
+
+            # VERIFY ingestion worked
+            collection_count = rag_manager.collection.count()
+            print(f"✓ Knowledge base now contains {collection_count} chunks\n")
+
+            if collection_count == 0:
+                print("⚠️  WARNING: No documents were ingested! Proceeding anyway...")
+
+        except Exception as e:
+            print(f"❌ Error during company info ingestion: {e}")
+            print("Proceeding without company information...\n")
+        finally:
+            if hasattr(ingestion_agent, 'cleanup'):
+                await ingestion_agent.cleanup()
+            await asyncio.sleep(0.1)
+    else:
+        print(f"⚠️  Company info file not found or not provided: {company_info_file}")
+        print("Proceeding without company information...\n")
+
+    # ============================================================
+    # NOW CREATE THE EXTRACTION AGENT (focused only on RFP)
+    # ============================================================
     agent = chat_client.create_agent(
-        name="RFP Response Architect",
+        name="RFP Requirements Extractor",
         instructions=f"""
-        You are an expert Bid Manager. Your job is to extract all requirements, scope of work, response information and questions from an RFP..
+        You are an expert Bid Manager focused on extracting requirements from RFPs.
 
         TOOLS
         -----
-        You have access to three important tools to convert documents (docling_tool) and manage the knowledge base (rag_manager.add_document and rag_manager.query_knowledge):
+        You have access to:
 
         1. docling_tool
-           - Provides access to a Docling MCP server that allows you to convert documents, e.g. PDF files to markdown.
-           - Always use this to read the source PDFs to add to the RAG knowledge base. Do not guess their contents.
-           - Do NOT pass numeric values for max_size, either omit max_size entirely or pass it as a string, e.g. "100"; if you are unsure, omit max_size so the default is used.
+           - Converts PDF documents to markdown
+           - Use this to read the RFP file
+           - Do NOT pass numeric values for max_size
 
-        2. rag_manager.add_document
-           - Saves markdown text into the knowledge base.
-           - Parameters:
-               - content: the markdown text you want to store.
-               - source: "Company-Info" for company information.
-           - Always call this after using docling_tool to ingest the document.
-
-        3. rag_manager.query_knowledge
-           - Retrieves relevant text chunks from the knowledge base using semantic search.
-           - Parameters:
-               - query: What you are looking for.
-               - source_filter: Use "Company-Info" when searching for the company information to match an RFP requirement.
-           - You must use this tool whenever you need factual details about the company capabilities. Do not rely on your memory.
+        2. rag_manager.query_knowledge
+           - The knowledge base has already been populated with company information
+           - You can query it if you need to reference company capabilities
+           - Use source_filter="Company-Info" when querying
 
         REQUIREMENT EXTRACTION
         ----------------------
-        You must:
-        - Work through the RFP in 'rfp_file' and extract the Scope of work, proposal response format and requirements, evaluation criteria and anything else that looks like we need to respond to.
-        - Show the requirements from the RFP as they appear in the RFP, do not intepret them, show them exactly as they appear in the RFP.
-
-        COMPANY INFORMATION INGESTION
-        -----------------------------
-        You must:
-        - Work through the Company Informaiton in 'company_info_file' and extract all the company information, it will be used to respond to the RFP.
-        - Save the company information into the RAG database using rag_manager.add_document.
+        Your job is to:
+        - Convert the RFP PDF to markdown using docling_tool
+        - Extract the Scope of Work, proposal response format, requirements, evaluation criteria and any other RFP sections that need a response.
+        - Show requirements exactly as they appear in the RFP
+        - Do NOT interpret or modify the requirements
 
         OUTPUT FORMAT
         -------------
-        Output the requirements in a JSON format, retaining the RFP document hierarchy exactly as it appears in the RFP - section by section.
+        Output the requirements in JSON format, retaining the RFP document hierarchy exactly.
 
-        GUARDRAILS
-        ----------
-        You must use the following guardrails when developing a respone:
-        - Never fabricate anything that is not supported by requirements extracted from the RFP.
-        - If information is incomplete, say so clearly and suggest that the bid team add more detail.
-        - Use professional, confident, and concise language suitable for a formal RFP.
-
-        Your goal is to extract the requirements from the RFP that is fully traceable back to the source documents.
+        NOTE: Company information has ALREADY been ingested into the knowledge base.
+        You do NOT need to ingest it again. Focus only on extracting RFP requirements.
         """,
-        tools=[docling_tool, rag_manager.add_document, rag_manager.query_knowledge]
+        tools=[docling_tool, rag_manager.query_knowledge]  # Note: no add_document needed
     )
 
-    # 5. Run the Agent with a Phased Prompt
+    # 5. Run the Agent (now focused only on RFP extraction)
     try:
         result = await agent.run(
-        f"""
-        Use the workflow and tool usage described in your system instructions.
+            f"""
+            Extract all requirements from the RFP file: '{rfp_file}'
 
-        INPUT FILES
-        -----------
-        - Company-PDF: '{company_info_file}'
-        - RFP: '{rfp_file}'
+            1. Use docling_tool to convert the RFP to markdown
+            2. Extract and structure all requirements in JSON format
+            3. Retain the original RFP hierarchy
 
-        TASK
-        ----
-        1. If a company information document is provided, '{company_info_file}' ingest it as well:
-           - Use docling_tool to convert the company information document to markdown.
-           - Call rag_manager.add_document with source="Company-Info".
-
-        2. Then work through the RFP and extract:
-           - Scope of work
-           - Proposal response format and requirements
-           - Evaluation criteria
-           - Any other sections that need responses.
-
-        3. Output the RFP requirements in JSON format, retaining the RFP document hierarchy exactly as it appears in the RFP.
-        """
+            The knowledge base already contains company information if you need to reference it.
+            """
         )
 
         print(f"Agent: {result}\n\n")
-
         return result
+
     finally:
-        # Ensure proper cleanup of agent resources
         if hasattr(agent, 'cleanup'):
             await agent.cleanup()
-        # Give async generators time to clean up
         await asyncio.sleep(0.1)
 
-
-# --- NEW: Per-section response generation with optional company info RAG ---
+# --- Per-section response generation with optional company info RAG ---
 
 async def generate_section_responses(requirements_json_path: str,
                                      answers_output_path: str = "rfp_answers.json",
@@ -392,8 +425,6 @@ async def generate_section_responses(requirements_json_path: str,
 
     Traversal is bottom-up within each dictionary: last key first.
     Final output is a JSON file mapping section paths to answers.
-
-    If company_info_path is provided, the file is ingested into the RAG as 'Company-Info' and used when generating responses.
 
     Assumes the RAG database has already been populated with Company information (source='Company-Info', if provided) by the extraction agent.
     """
@@ -427,7 +458,8 @@ async def generate_section_responses(requirements_json_path: str,
 
         USE OF KNOWLEDGE BASE
         ---------------------
-        - rag_manager.query_knowledge retrieves the company information file from the knwoledge base using "Company-Info".
+        - rag_manager.query_knowledge retrieves the company information from the knwoledge base.
+        - Call it with query and source_filter="Company-Info" when you need company capabilities.
         - Call this tool whenever you need factual details about the company's capabilities, services, experience, certifications, locations, and differentiators.
         - Prefer retrieved company-specific details over generic statements.
         - Never fabricate capabilities or claims that are not supported by retrieved information.
@@ -662,7 +694,7 @@ if __name__ == "__main__":
         company_info_file = default_company_info
 
     # 1) Run extraction agent and save result
-    result = asyncio.run(run_agent(rfp_file, output_file, company_info_file))
+    result = asyncio.run(run_agent(rfp_file, company_info_file, output_file))
     save_to_json(result, output_file)
 
     # 2) Run per-section response agent over the extracted JSON (with optional company info)
@@ -673,3 +705,4 @@ if __name__ == "__main__":
     # 3) Convert section responses JSON to Word
     answers_docx = f"{base}_answers.docx"
     answers_json_to_word(answers_file, answers_docx)
+
