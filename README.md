@@ -21,7 +21,7 @@ This is for the procurement teams that receive the RFP's and generate an initial
  - [X] Add Word document creation to store output.
  - [X] Pass files in as parameters (with defaults).
  - [X] Try larger Qwen models (14b runs just fine - needed context window modified).
- - [X] Improved prompts to reduce instructtion and user prompt overlap (got better responses and less reasoning).
+ - [X] Improved prompts to reduce instruction and user prompt overlap (got better responses and less reasoning).
  - [X] Built version to extract RFP contents into JSON and then loop through the individual JSON sections and develop responses (replicates what I do manually with GenAI's), all consolidated into a final Word document.  This worked really well and was a major enhancement.
  	- [X] Keep JSON as intermediate format as it's entriely possible the RFP reponse could feed into an automated assessor that would ingest the JSON and assess it (easier to assess than parsing a Word document).
 
