@@ -30,13 +30,14 @@ This is for the procurement teams that receive the RFP's and generate an initial
  2. QA Agent
  	- Add a QA agent to the script - client persona based.
   	- Add ability to pull in files that describe the customer (e.g. Strategic Plans etc.) and use them to support the QA persona (i.e. have it work through the RFP JSON to see if there is anything to add to the RFP response that would increase the liklihood of winning the RFP).
- 3. Try larger Qwen models - qwen3:30b may be a bit too large with any large enough context window for my current server, although I suspect we will get a better quality RFP respnse from this larger model).
- 4. Think about extracting the company information into JSON and storing it in the vector database (or upgrading the RAG database to a RAG/Graph database - could even pre-load the company information to speed things up).
- 5. I suspect the basic rag is insufficient to make this production ready - maybe even use A2A and MAO to have a seperate agent answer the questions (may be getting to tool overload).
- 6. Automate: Develop cron shell script to monitor folder for PDF's, process the PDF and generate response (whether that is drafting a response or assessing a rubric).
- 7. Migrate to vllm for multi-GPU support
- 8. Add email support to send out the responses by email.
- 9. Add conversational, multi-turn (this doesn't fit the factory model but would be fun - would be more suited to an interactive solution).
+ 3. Work on asyn mode for each of the JSON question calls to improve performance (wonder how many I could launch?)
+ 4. Try larger Qwen models - qwen3:30b may be a bit too large with any large enough context window for my current server, although I suspect we will get a better quality RFP respnse from this larger model).
+ 5. Think about extracting the company information into JSON and storing it in the vector database (or upgrading the RAG database to a RAG/Graph database - could even pre-load the company information to speed things up).
+ 6. I suspect the basic rag is insufficient to make this production ready - maybe even use A2A and MAO to have a seperate agent answer the questions (may be getting to tool overload).
+ 7. Automate: Develop cron shell script to monitor folder for PDF's, process the PDF and generate response (whether that is drafting a response or assessing a rubric).
+ 8. Migrate to vllm for multi-GPU support
+ 9. Add email support to send out the responses by email.
+ 10. Add conversational, multi-turn (this doesn't fit the factory model but would be fun - would be more suited to an interactive solution).
 
 ## RFP Response Assessor
 
