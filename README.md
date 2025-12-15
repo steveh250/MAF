@@ -28,7 +28,7 @@ This is for the procurement teams that receive the RFP's and generate an initial
   - [ ] 
 
 ### Phase 2 - Enhancements (In Priority Order)
- 1. Fix the RAG ingestion and extraction for the Company Information - the model is still hallucinating (retrieved text too big for the context window?).  More likely it's the chunking strategy that's a problem.
+ 1. Fix the RAG ingestion and extraction for the Company Information - the model is still hallucinating (retrieved text too big for the context window? - created a 130k num_ctx version to test).  More likely it's the chunking strategy that's a problem.
  2. QA Agent
  	- Add a QA agent to the script - client persona based.
   	- Add ability to pull in files that describe the customer (e.g. Strategic Plans etc.) and use them to support the QA persona (i.e. have it work through the RFP JSON to see if there is anything to add to the RFP response that would increase the liklihood of winning the RFP).
