@@ -44,14 +44,11 @@ class RAGManager:
 
     def add_document(self, content: str, source: str) -> str:
         """
-        Adds text content to the vector database.
+        Adds text content to the vector database for later retrieval when answering questions.
         Args:
             content: The text (markdown) to add.
             source: A label for where this text came from (e.g., "Company Profile", "RFP").
         """
-
-        name="add_to_knowledge_base",
-        description="Saves text to the vector DB. Requires 'content' and 'source' (e.g., 'Company-Info' or 'RFP').",
 
         # Split by double newline to create logical chunks
 
@@ -73,11 +70,8 @@ class RAGManager:
 
     def query_knowledge(self, query: str, n_results: int = 10) -> str:
         """
-        Queries the vector database for relevant context.
+        Queries the vector database for relevant context. Used to answer questions or requirements in the RFP by pulling the company information.
         """
-
-        name="query_knowledge_base",
-        description="Searches the vector DB for answers. Useful for matching RFP requirements to Company capabilities.",
 
         results = self.collection.query(
             query_texts=[query],
@@ -93,8 +87,6 @@ class RAGManager:
         print(f"Knowledge query executed: '{query}'\n")
         return context if context else "No relevant information found in the knowledge base."
 
-# Instantiate a global rag_manager
-rag_manager = RAGManager()
 
 
 def save_to_json(result, output_filename: str = "rfp_response.json"):
@@ -272,7 +264,7 @@ def iter_answerable_nodes(node, path=None):
                 "requirements": [str(node)]
             }
 
-async def run_agent(rfp_file: str, output_file: str = "rfp_response.json", company_info_file:str | None = None):
+async def run_agent(rfp_file: str, company_info_files: str, output_file: str = "rfp_response.json"):
     # 1. Initialize RAG DB
     rag_manager.reset_database()
 
@@ -287,7 +279,7 @@ async def run_agent(rfp_file: str, output_file: str = "rfp_response.json", compa
     # 3. Define Tools
     docling_tool = MCPStreamableHTTPTool(
         name="docling_tool",
-        description="Convert a PDF to Markdown using docling MCP server",
+        description="Use for document conversion.  Convert a PDF to Markdown using docling MCP server.",
         url="http://localhost:8000/mcp",
     )
 
@@ -314,21 +306,27 @@ async def run_agent(rfp_file: str, output_file: str = "rfp_response.json", compa
            - Saves markdown text into the knowledge base.
            - Parameters:
                - content: the markdown text you want to store.
-               - source: "RFP" for RFP content and "company-Info" for company information.
+               - source: "Company-Info" for company information.
            - Always call this after using docling_tool to ingest the document.
 
         3. rag_manager.query_knowledge
            - Retrieves relevant text chunks from the knowledge base using semantic search.
            - Parameters:
-               - query: Wwhat you are looking for.
-               - source_filter: Use "RFP" when searching for the exact RFP requirement text.
-           - You must use this tool whenever you need factual details from the RFP. Do not rely on your memory.
+               - query: What you are looking for.
+               - source_filter: Use "Company-Info" when searching for the company information to match an RFP requirement.
+           - You must use this tool whenever you need factual details about the company capabilities. Do not rely on your memory.
 
         REQUIREMENT EXTRACTION
         ----------------------
         You must:
-        - Work through the RFP and extract the Scope of work, proposal response format and requirements, evaluation criteria and anything else that looks like we need to respond to.
-        - Show the requirements from the RFP as they appea rin the RFP, do not intepret them, show them exactly as they appear in the RFP.
+        - Work through the RFP in 'rfp_file' and extract the Scope of work, proposal response format and requirements, evaluation criteria and anything else that looks like we need to respond to.
+        - Show the requirements from the RFP as they appear in the RFP, do not intepret them, show them exactly as they appear in the RFP.
+
+        COMPANY INFORMATION INGESTION
+        -----------------------------
+        You must:
+        - Work through the Company Informaiton in 'company_info_file' and extract all the company information, it will be used to respond to the RFP.
+        - Save the company information into the RAG database using rag_manager.add_document.
 
         OUTPUT FORMAT
         -------------
@@ -337,7 +335,7 @@ async def run_agent(rfp_file: str, output_file: str = "rfp_response.json", compa
         GUARDRAILS
         ----------
         You must use the following guardrails when developing a respone:
-        - Never fabricate anything that is not supported by retrieved information from the knowledge base.
+        - Never fabricate anything that is not supported by requirements extracted from the RFP.
         - If information is incomplete, say so clearly and suggest that the bid team add more detail.
         - Use professional, confident, and concise language suitable for a formal RFP.
 
@@ -354,26 +352,22 @@ async def run_agent(rfp_file: str, output_file: str = "rfp_response.json", compa
 
         INPUT FILES
         -----------
-        - RFP-PDF: '{rfp_file}'
         - Company-PDF: '{company_info_file}'
+        - RFP: '{rfp_file}'
 
         TASK
         ----
-        1. Perform your full ingestion phase for the RFP PDF.
-           - Use docling_tool to convert the RFP-PDF to markdown.
-           - Call rag_manager.add_document with source="RFP".
-
-        2. If a company information document is provided,n '{company_info_file}' ingest it as well:
+        1. If a company information document is provided, '{company_info_file}' ingest it as well:
            - Use docling_tool to convert the company information document to markdown.
            - Call rag_manager.add_document with source="Company-Info".
 
-        3. Then work through the RFP and extract:
+        2. Then work through the RFP and extract:
            - Scope of work
            - Proposal response format and requirements
            - Evaluation criteria
            - Any other sections that need responses.
 
-        4. Output the requirements in JSON format, retaining the RFP document hierarchy exactly as it appears in the RFP.
+        3. Output the RFP requirements in JSON format, retaining the RFP document hierarchy exactly as it appears in the RFP.
         """
         )
 
@@ -394,19 +388,14 @@ async def generate_section_responses(requirements_json_path: str,
                                      answers_output_path: str = "rfp_answers.json",
                                      company_info_path: str = "MyCompany-Capabilities-Test.pdf"):  # NEW arg
     """
-    Loads the extracted RFP requirements JSON and has an Agent respond to each
-    answerable JSON structure (e.g., 1.2.1, 1.2.2) one at a time.
+    Loads the extracted RFP requirements JSON and has an Agent respond to each answerable JSON structure (e.g., 1.2.1, 1.2.2) one at a time.
 
     Traversal is bottom-up within each dictionary: last key first.
     Final output is a JSON file mapping section paths to answers.
 
-    If company_info_path is provided, the file is ingested into the RAG
-    as 'Company-Info' and used when generating responses.
+    If company_info_path is provided, the file is ingested into the RAG as 'Company-Info' and used when generating responses.
 
-    Assumes the RAG database has already been populated with:
-    - RFP content (source='RFP')
-    - Company information (source='Company-Info', if provided)
-    by the extraction agent.
+    Assumes the RAG database has already been populated with Company information (source='Company-Info', if provided) by the extraction agent.
     """
 
     chat_client = OpenAIChatClient(
@@ -432,18 +421,14 @@ async def generate_section_responses(requirements_json_path: str,
         Your job:
         - Draft a concise, professional response in Markdown.
         - Address each requirement explicitly.
-        - Align your answer with standard managed IT services capabilities.
-        - When company information is available in the knowledge base, explain how our specific capabilities, services, experience, certifications, and differentiators meet these requirements.
+        - Align your answer with standard managed IT services capabilities provided by the Company..
+        - Extract When company information is available in the knowledge base, explain how our specific capabilities, services, experience, certifications, and differentiators meet these requirements.
         - Do not include JSON or code fences; output plain Markdown only.
 
         USE OF KNOWLEDGE BASE
         ---------------------
-        - rag_manager.query_knowledge retrieves context from the RFP and, when
-          provided, from the company information file (sources such as "RFP"
-          and "Company-Info").
-        - Call this tool whenever you need factual details about:
-            * The exact RFP wording and surrounding context; and/or
-            * The company's capabilities, services, experience, certifications, locations, and differentiators.
+        - rag_manager.query_knowledge retrieves the company information file from the knwoledge base using "Company-Info".
+        - Call this tool whenever you need factual details about the company's capabilities, services, experience, certifications, locations, and differentiators.
         - Prefer retrieved company-specific details over generic statements.
         - Never fabricate capabilities or claims that are not supported by retrieved information.
         - Summarize, but do not contradict, the RFP requirements or company information.
@@ -486,32 +471,29 @@ async def generate_section_responses(requirements_json_path: str,
 
             # UPDATED prompt to explicitly mention company info + knowledge queries
             prompt = f"""
-You are preparing a response to an RFP section.
+            You are preparing a response to an RFP section.
 
-RFP section path:
-{section_path}
+            RFP section path:
+            {section_path}
 
-Section ID: {section_id}
-Section Title: {section_title}
+            Section ID: {section_id}
+            Section Title: {section_title}
 
-Original RFP requirements:
-{bullets_md}
+            Original RFP requirements:
+            {bullets_md}
 
-TASK
-----
-1. If helpful, first call your knowledge tool (rag_manager.query_knowledge) using a query that includes the section title and key requirement terms.
-   Use this to retrieve:
-   - The precise RFP context, and
-   - Any relevant company information (from 'Company-Info') that describes our capabilities, services, experience, certifications, and differentiators related to this section.
+            TASK
+            ----
+            1. Call your knowledge tool (rag_manager.query_knowledge) using a query that includes the section title and key requirement terms. Use this to retrieve any relevant company information (from 'Company-Info') that describes our capabilities, services, experience, certifications, and differentiators related to this section.
 
-2. Then draft a concise, professional answer in Markdown that:
-   - Clearly addresses each bullet above.
-   - Uses first-person plural ("we") to describe the service provider.
-   - Incorporates retrieved company-specific details wherever relevant, instead of generic statements.
-   - Is suitable to paste directly into an RFP response document.
+            2. Then draft a concise, professional answer in Markdown that:
+               - Clearly addresses each bullet above.
+               - Uses first-person plural ("we") to describe the service provider.
+               - Incorporates retrieved company-specific details wherever relevant, instead of generic statements.
+               - Is suitable to paste directly into an RFP response document.
 
-Remember: output Markdown only, no JSON, no code fences.
-"""
+            Remember: output Markdown only, no JSON, no code fences.
+            """
 
             result = await response_agent.run(prompt)
             answer_text = extract_main_content(result).strip()
@@ -661,6 +643,9 @@ if __name__ == "__main__":
     default_output = "/home/ubuntu/MAF/rfp_requirements.json"
     default_company_info = "/home/ubuntu/MAF/MyCompany-Capabilities-Test.pdf"
 
+    # Instantiate a global rag_manager
+    rag_manager = RAGManager()
+
     # Parse command line arguments
     if len(sys.argv) >= 2:
         rfp_file = sys.argv[1]
@@ -688,4 +673,3 @@ if __name__ == "__main__":
     # 3) Convert section responses JSON to Word
     answers_docx = f"{base}_answers.docx"
     answers_json_to_word(answers_file, answers_docx)
-
