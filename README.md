@@ -25,7 +25,7 @@ This is for the procurement teams that receive the RFP's and generate an initial
  - [X] Built version to extract RFP contents into JSON and then loop through the individual JSON sections and develop responses (replicates what I do manually with GenAI's), all consolidated into a final Word document.  This worked really well and was a major enhancement.
  	- [X] Keep JSON as intermediate format as it's entriely possible the RFP reponse could feed into an automated assessor that would ingest the JSON and assess it (easier to assess than parsing a Word document).
   - [X] RAG ingestion by Agent is now more predictible - giving one agent the responsibility of ingestion into RAG of the Company info AND JSON extraction of the requirements was too predictable (still hallucinating though).
-  - [ ] 
+  - [X] Increase context window size with 130k (128,000 tokens) model (oddly seemed to have improved the responses and now we have multiple chunks being found and processed from the RAG retrieval so response quality has improved.
 
 ### Phase 2 - Enhancements (In Priority Order)
  1. Fix the RAG ingestion and extraction for the Company Information - the model is still hallucinating (retrieved text too big for the context window? - created a 130k num_ctx version to test).  More likely it's the chunking strategy that's a problem.
@@ -73,6 +73,7 @@ Noticed this in the Ollama logs: 'Nov 02 22:57:57 ollama[1011]: time=2025-11-02T
  - Found this article: https://github.com/ollama/ollama/issues/8099
  - Applied these changes - including changing the model name in the Python script and worked much better.
  - Also saw the same message with the 14B model, used same approach to fix.
+ - Later increased the context window size to 128,000 tokens which improved the responses (included more from RAG retieval)
 
 ```
    		(venv) ubuntu:~/MAF$ ollama run qwen3:8b
