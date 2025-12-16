@@ -28,10 +28,10 @@ This is for the procurement teams that receive the RFP's and generate an initial
   - [X] Increase context window size with 130k (128,000 tokens) model (oddly seemed to have improved the responses and now we have multiple chunks being found and processed from the RAG retrieval so response quality has improved.
 
 ### Phase 2 - Enhancements (In Priority Order)
- 1. Fix the RAG ingestion and extraction for the Company Information - the model is still hallucinating (retrieved text too big for the context window? - created a 130k num_ctx version to test).  More likely it's the chunking strategy that's a problem.
- 2. QA Agent
+ 1. QA Agent
  	- Add a QA agent to the script - client persona based.
   	- Add ability to pull in files that describe the customer (e.g. Strategic Plans etc.) and use them to support the QA persona (i.e. have it work through the RFP JSON to see if there is anything to add to the RFP response that would increase the liklihood of winning the RFP).
+ 2. Can I improve the RAG retrieval even more?
  3. Work on async mode for each of the JSON question calls to improve performance (wonder how many I could launch?)
  4. Try larger Qwen models - qwen3:30b may be a bit too large with any large enough context window for my current server, although I suspect we will get a better quality RFP respnse from this larger model).
  5. Think about extracting the company information into JSON and storing it in the vector database (or upgrading the RAG database to a RAG/Graph database - could even pre-load the company information to speed things up).
