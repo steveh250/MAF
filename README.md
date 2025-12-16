@@ -30,6 +30,7 @@ This is for the procurement teams that receive the RFP's and generate an initial
 ### Phase 2 - Enhancements (In Priority Order)
  1.Split the Agents up into different agents and setup a controller Agent to use A2A to call the individual Agents with specific, tightly controlled scopes of work.
  	- https://learn.microsoft.com/en-us/agent-framework/user-guide/agents/agent-types/a2a-agent?pivots=programming-language-python
+	- Flask based for async i/o (amongst other things)
  2. QA Agent
  	- Add a QA agent to the script - client persona based.
   	- Add ability to pull in files that describe the customer (e.g. Strategic Plans etc.) and use them to support the QA persona (i.e. have it work through the RFP JSON to see if there is anything to add to the RFP response that would increase the liklihood of winning the RFP).
