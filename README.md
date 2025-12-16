@@ -25,20 +25,19 @@ This is for the procurement teams that receive the RFP's and generate an initial
  - [X] Built version to extract RFP contents into JSON and then loop through the individual JSON sections and develop responses (replicates what I do manually with GenAI's), all consolidated into a final Word document.  This worked really well and was a major enhancement.
  	- [X] Keep JSON as intermediate format as it's entriely possible the RFP reponse could feed into an automated assessor that would ingest the JSON and assess it (easier to assess than parsing a Word document).
   - [X] RAG ingestion by Agent is now more predictible - giving one agent the responsibility of ingestion into RAG of the Company info AND JSON extraction of the requirements was too predictable (still hallucinating though).
-  - [X] Increase context window size with 130k (128,000 tokens) model (oddly seemed to have improved the responses and now we have multiple chunks being found and processed from the RAG retrieval so response quality has improved.
+  - [X] Increase context window size with 130k (128,000 tokens) model and have improved the responses as now we have multiple chunks being found and processed from the RAG retrieval so response quality has improved.  Problem was likely that the context window was too small to process the docling converted company ionfo document - with the document being processed within the context window there is more data to chunck and therefore more responses to the RAG query and data for the prompts.  It wasn't an hallucination problem but a context window and data problem.
 
 ### Phase 2 - Enhancements (In Priority Order)
- 1. QA Agent
+ 1.Split the Agents up into different agents and setup a controller Agent to use A2A to call the individual Agents with specific, tightly controlled scopes of work.
+ 2. QA Agent
  	- Add a QA agent to the script - client persona based.
   	- Add ability to pull in files that describe the customer (e.g. Strategic Plans etc.) and use them to support the QA persona (i.e. have it work through the RFP JSON to see if there is anything to add to the RFP response that would increase the liklihood of winning the RFP).
- 2. Can I improve the RAG retrieval even more?
  3. Work on async mode for each of the JSON question calls to improve performance (wonder how many I could launch?)
  4. Try larger Qwen models - qwen3:30b may be a bit too large with any large enough context window for my current server, although I suspect we will get a better quality RFP respnse from this larger model).
- 5. Think about extracting the company information into JSON and storing it in the vector database (or upgrading the RAG database to a RAG/Graph database - could even pre-load the company information to speed things up).
- 6. I suspect the basic rag is insufficient to make this production ready - maybe even use A2A and MAO to have a seperate agent answer the questions (may be getting to tool overload).
- 7. Automate: Develop cron shell script to monitor folder for PDF's, process the PDF and generate response (whether that is drafting a response or assessing a rubric).
- 8. Migrate to vllm for multi-GPU support
- 9. Add email support to send out the responses by email.
+ 6. Automate: Develop cron shell script to monitor folder for PDF's, process the PDF and generate response (whether that is drafting a response or assessing a rubric).
+ 7. Migrate to vllm for multi-GPU support
+ 8. Add email support to send out the responses by email.
+ 9. Can I improve the RAG retrieval even more.
  10. Add conversational, multi-turn (this doesn't fit the factory model but would be fun - would be more suited to an interactive solution).
 
 ## RFP Response Assessor
@@ -73,7 +72,7 @@ Noticed this in the Ollama logs: 'Nov 02 22:57:57 ollama[1011]: time=2025-11-02T
  - Found this article: https://github.com/ollama/ollama/issues/8099
  - Applied these changes - including changing the model name in the Python script and worked much better.
  - Also saw the same message with the 14B model, used same approach to fix.
- - Later increased the context window size to 128,000 tokens which improved the responses (included more from RAG retieval)
+ - Later increased the context window size to 128,000 tokens which improved the responses - due to more data being available in the context window form the docling server to ingest into the RAG data store.
 
 ```
    		(venv) ubuntu:~/MAF$ ollama run qwen3:8b
