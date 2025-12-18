@@ -32,7 +32,7 @@ This is for the procurement teams that receive the RFP's and generate an initial
  	- https://learn.microsoft.com/en-us/agent-framework/user-guide/agents/agent-types/a2a-agent?pivots=programming-language-python
 	- Flask based for async i/o (amongst other things)
  2. QA Agent
- 	- Add a QA agent to the script - client persona based.
+ 	- Add a QA agent to the script - client persona based (maybe use a diffrerent model for QA).
   	- Add ability to pull in files that describe the customer (e.g. Strategic Plans etc.) and use them to support the QA persona (i.e. have it work through the RFP JSON to see if there is anything to add to the RFP response that would increase the liklihood of winning the RFP).
  3. Work on async mode for each of the JSON question calls to improve performance (wonder how many I could launch?)
  4. Try larger Qwen models - qwen3:30b may be a bit too large with any large enough context window for my current server, although I suspect we will get a better quality RFP respnse from this larger model).
