@@ -34,6 +34,7 @@ This is for the procurement teams that receive the RFP's and generate an initial
  2. QA Agent
  	- Add a QA agent to the script - client persona based (maybe use a diffrerent model for QA).
   	- Add ability to pull in files that describe the customer (e.g. Strategic Plans etc.) and use them to support the QA persona (i.e. have it work through the RFP JSON to see if there is anything to add to the RFP response that would increase the liklihood of winning the RFP).
+	- Is there a way to make this self-learning - have the QA agent recommend prompt changes to include in the RFP agent to improve it's work? (E.G. have access to the RFP agent prompts which get read in each time by the RFP agent.)
  3. Instead of consuming company information and dding RAG overhead - what about fine-tuning a TLM like Gemma3:270M
     - https://docs.unsloth.ai/models/functiongemma
  4. Work on async mode for each of the JSON question calls to improve performance (wonder how many I could launch?)
