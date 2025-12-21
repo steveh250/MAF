@@ -28,22 +28,22 @@ This is for the procurement teams that receive the RFP's and generate an initial
   - [X] Increase context window size with 130k (128,000 tokens) model and have improved the responses as now we have multiple chunks being found and processed from the RAG retrieval so response quality has improved.  Problem was likely that the context window was too small to process the docling converted company ionfo document - with the document being processed within the context window there is more data to chunck and therefore more responses to the RAG query and data for the prompts.  It wasn't an hallucination problem but a context window and data problem.
 
 ### Phase 2 - Enhancements (In Priority Order)
- [] Split the Agents up into different agents and setup a controller Agent to use A2A to call the individual Agents with specific, tightly controlled scopes of work.
+ - [ ] Split the Agents up into different agents and setup a controller Agent to use A2A to call the individual Agents with specific, tightly controlled scopes of work.
  	- https://learn.microsoft.com/en-us/agent-framework/user-guide/agents/agent-types/a2a-agent?pivots=programming-language-python
 	- Flask based for async i/o (amongst other things)
- []  QA Agent
+ - [ ]  QA Agent
  	- Add a QA agent to the script - client persona based (maybe use a diffrerent model for QA).
   	- Add ability to pull in files that describe the customer (e.g. Strategic Plans etc.) and use them to support the QA persona (i.e. have it work through the RFP JSON to see if there is anything to add to the RFP response that would increase the liklihood of winning the RFP).
 	- Is there a way to make this self-learning - have the QA agent recommend prompt changes to include in the RFP agent to improve it's work? (E.G. have access to the RFP agent prompts which get read in each time by the RFP agent.)
- [] Instead of consuming company information and dding RAG overhead - what about fine-tuning a TLM like Gemma3:270M
+ - [ ] Instead of consuming company information and dding RAG overhead - what about fine-tuning a TLM like Gemma3:270M
     - https://docs.unsloth.ai/models/functiongemma
- [] Work on async mode for each of the JSON question calls to improve performance (wonder how many I could launch?)
- [] Try larger Qwen models - qwen3:30b may be a bit too large with any large enough context window for my current server, although I suspect we will get a better quality RFP respnse from this larger model).
- [] Automate: Develop cron shell script to monitor folder for PDF's, process the PDF and generate response (whether that is drafting a response or assessing a rubric).
- [] Migrate to vllm for multi-GPU support
- [] Add email support to send out the responses by email.
- [] Can I improve the RAG retrieval even more.
- [] Add conversational, multi-turn (this doesn't fit the factory model but would be fun - would be more suited to an interactive solution).
+ - [ ] Work on async mode for each of the JSON question calls to improve performance (wonder how many I could launch?)
+ - [ ] Try larger Qwen models - qwen3:30b may be a bit too large with any large enough context window for my current server, although I suspect we will get a better quality RFP respnse from this larger model).
+ - [ ] Automate: Develop cron shell script to monitor folder for PDF's, process the PDF and generate response (whether that is drafting a response or assessing a rubric).
+ - [ ] Migrate to vllm for multi-GPU support
+ - [ ] Add email support to send out the responses by email.
+ - [ ] Can I improve the RAG retrieval even more.
+ - [ ] Add conversational, multi-turn (this doesn't fit the factory model but would be fun - would be more suited to an interactive solution).
 
 ## RFP Response Assessor
 
