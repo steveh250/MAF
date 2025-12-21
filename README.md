@@ -28,10 +28,10 @@ This is for the procurement teams that receive the RFP's and generate an initial
   - [X] Increase context window size with 130k (128,000 tokens) model and have improved the responses as now we have multiple chunks being found and processed from the RAG retrieval so response quality has improved.  Problem was likely that the context window was too small to process the docling converted company ionfo document - with the document being processed within the context window there is more data to chunck and therefore more responses to the RAG query and data for the prompts.  It wasn't an hallucination problem but a context window and data problem.
 
 ### Phase 2 - Enhancements (In Priority Order)
- 1.Split the Agents up into different agents and setup a controller Agent to use A2A to call the individual Agents with specific, tightly controlled scopes of work.
+ [ ] Split the Agents up into different agents and setup a controller Agent to use A2A to call the individual Agents with specific, tightly controlled scopes of work.
  	- https://learn.microsoft.com/en-us/agent-framework/user-guide/agents/agent-types/a2a-agent?pivots=programming-language-python
 	- Flask based for async i/o (amongst other things)
- 2. QA Agent
+ [ ]  QA Agent
  	- Add a QA agent to the script - client persona based (maybe use a diffrerent model for QA).
   	- Add ability to pull in files that describe the customer (e.g. Strategic Plans etc.) and use them to support the QA persona (i.e. have it work through the RFP JSON to see if there is anything to add to the RFP response that would increase the liklihood of winning the RFP).
 	- Is there a way to make this self-learning - have the QA agent recommend prompt changes to include in the RFP agent to improve it's work? (E.G. have access to the RFP agent prompts which get read in each time by the RFP agent.)
